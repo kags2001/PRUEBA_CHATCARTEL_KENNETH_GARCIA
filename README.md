@@ -10,3 +10,11 @@ express-validator: facilita las validaciones respectivas de datos de entrada
 jsonwebtoken: ayuda al manejo del JWT
 nodemon: dependencia para desarrollo, facilita el recargar el servidor automaticamente
 sequelize: ORM utilizado
+mongoose: ODM para mongo
+
+
+#Roles
+Los roles son agregados automaticamente al momento de crear el servidor
+
+#Estados de tareas
+Los estados de tareas son agregador al momento de crear el servidor

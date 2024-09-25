@@ -21,32 +21,39 @@ const {User} = require('../models');
     }
 
     const userDelete = async (req, res) => {
-        const {id} = req.params;
-        const user = await findUserById(id, res);
-        if (!user) return;
-        const usuarioAuth = req.usuario;
+       try {
+           const {id} = req.params;
+           const user = await findUserById(id, res);
+           if (!user) return;
+           const usuarioAuth = req.usuario;
 
-            await User.destroy({
-                where: {
-                    id: id,
-                },
-            });
+           await User.destroy({
+               where: {
+                   id: id,
+               },
+           });
 
-            await logActivity(usuarioAuth.id, "delete", "user");
-            res.json({
-                msg:'Usuario eliminado correctamente'
-            });
-
+           await logActivity(usuarioAuth.id, "delete", "user");
+           res.json({
+               msg:'Usuario eliminado correctamente'
+           });
+       }catch (error){
+           console.log(error);
+           res.status(500).json({
+               msg:"Error interno en el servidor"
+           });
+           }
     }
 
     const userUpdate = async (req, res) => {
+    try {
         const {id} = req.params;
         const {username, role_name} = req.body;
         const user = await findUserById(id, res);
         if (!user) return;
         const usuarioAuth = req.usuario;
 
-       await User.update(
+        await User.update(
             { username:username, role_name: role_name  },
             {
                 where: {
@@ -56,24 +63,36 @@ const {User} = require('../models');
         );
         await logActivity(usuarioAuth.id, "update", "user");
         res.json({
-           msg:"Usuario actualizado satisfactoriamente",
-       })
+            msg:"Usuario actualizado satisfactoriamente",
+        });
+    }catch (error){
+        console.log(error);
+        res.status(500).json({
+            msg:"Error interno en el servidor"
+        });
+    }
     }
 
     const userCreate = async (req, res) => {
+        try {
+            const {password,email, ...body} = req.body;
+            const user = new User(body);
 
-        const {password,email, ...body} = req.body;
-        const user = new User(body);
+            //Encriptar password
+            user.password = await passwordBcrypt(password);
+            user.email = email;
 
-        //Encriptar password
-        user.password = await passwordBcrypt(password);
-        user.email = email;
-
-        await user.save();
-        await logActivity(user.id, "create", "user");
-        res.json({
-            msj:"Usuario creado satisfactoriamente"
-        })
+            await user.save();
+            await logActivity(user.id, "create", "user");
+            res.json({
+                msj:"Usuario creado satisfactoriamente"
+            })
+        }catch (error){
+            console.log(error);
+            res.status(500).json({
+                msg:"Error interno en el servidor"
+            });
+            }
     };
 
     module.exports = {
