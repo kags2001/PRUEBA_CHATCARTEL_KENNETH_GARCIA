@@ -17,4 +17,4 @@ mongoose: ODM para mongo
 Los roles son agregados automaticamente al momento de crear el servidor
 
 #Estados de tareas
-Los estados de tareas son agregador al momento de crear el servidor
+Los estados de tareas son agregados al momento de crear el servidor
