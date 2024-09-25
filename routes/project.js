@@ -4,11 +4,12 @@ const {
     projectFind,
     projectToUser,
     taskProjectCreate,
-    projectTaskFind
+    projectTaskFind, projectDelete, projectUpdate
 } = require("../controllers/projectController");
 const {validateJWT} = require("../middlewares/validate-jwt");
 const {check} = require("express-validator");
 const {validateFields} = require("../middlewares/validate-fields");
+const {isAdminRole, isSameOrAdminRole} = require("../middlewares/validate-roles");
 
 
 const router = Router();
@@ -24,6 +25,16 @@ router.post("/", [
     check("project_description", 'La descripcion del proyecto es requerido').not().isEmpty(),
     validateFields
 ], projectCreate);
+
+router.put("/:projectId", [
+    validateJWT,
+    isAdminRole,
+], projectUpdate);
+
+router.delete("/:projectId", [
+    validateJWT,
+    isAdminRole
+], projectDelete);
 
 router.post("/:projectId/tasks", [
     validateJWT,

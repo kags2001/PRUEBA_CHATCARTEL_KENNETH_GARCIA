@@ -22,6 +22,13 @@ const projectFind = async (req, res) => {
             attributes: ['id', 'project_name', 'project_description'],
         });
 
+        if (projects.length === 0){
+            res.json({
+                msg:"No tienes proyectos asigandos"
+            });
+            return;
+        }
+
         const projectResp = await filterProjects(projects);
 
         //Logs
@@ -55,6 +62,68 @@ const projectCreate = async (req, res) => {
         console.log(error)
         res.status(500).json({
             msg: "Error interno en el servidor"
+        })
+    }
+}
+
+const projectDelete = async (req, res) => {
+    try {
+        const {projectId} = req.params;
+        const userAuth = req.usuario;
+        const project = await findProjectById(projectId, res);
+        if (!project) return;
+
+        const projectUser = await UserProject.findByPk(projectId);
+        if (projectUser){
+            res.status(400).json({
+                msg:"El proyecto no se puede eliminar porque tiene usuario/s asignado a el"
+            })
+        } else{
+            await Project.destroy({
+                where: {
+                    id: projectId,
+                },
+            });
+            await logActivity(userAuth.id, "delete", "project");
+
+            res.json({
+                msg: "Proyecto eliminado satisfactoriamente"
+            });
+        }
+    } catch (error){
+        console.log(error);
+        res.status(500).json({
+            msg:"Error interno en el servidor"
+        })
+    }
+}
+
+const projectUpdate = async (req, res) => {
+    try {
+        const {projectId} = req.params;
+        const {project_name, project_description} = req.body;
+        const userAuth = req.usuario;
+        const project = await findProjectById(projectId, res);
+        if (!project) return;
+
+        await Project.update(
+            { project_name:project_name, project_description: project_description  },
+            {
+                where: {
+                    id: projectId,
+                },
+            },
+        );
+            await logActivity(userAuth.id, "update", "project");
+
+            res.json({
+                msg: "Proyecto actualizado satisfactoriamente"
+            });
+
+    } catch (error){
+        console.log(error);
+        res.status(500).json({
+            msg:"Error interno en el servidor"
         })
     }
 }
@@ -132,6 +201,10 @@ const taskProjectCreate = async (req, res) => {
                 res.json({
                     msg: `Tarea ${task.task_name} creada satisfactoriamente y asignada al usuario ${userPendingTask.user_id} por tener menos tareas pendientes`
                 });
+            }else{
+                res.json({
+                    msg:"Es necesario un usuario"
+                })
             }
         }
     } catch (error) {
@@ -166,14 +239,14 @@ const projectToUser = async (req, res) => {
         await UserProject.create(req.body);
 
         //Logs
-        await logActivity(userAuth.id, "create", "task");
+        await logActivity(userAuth.id, "create", "project");
 
         res.json({
             msg: `Proyecto ${project.project_name} asignado al usuario ${user.username} satisfactoriamente`
         })
     } catch (error) {
         console.log(error);
-        res.json({
+        res.status(500).json({
             msg: "Error interno en el servidor"
         })
     }
@@ -184,5 +257,7 @@ module.exports = {
     projectFind,
     projectToUser,
     taskProjectCreate,
-    projectTaskFind
+    projectTaskFind,
+    projectDelete,
+    projectUpdate
 }

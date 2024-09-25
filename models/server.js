@@ -12,6 +12,7 @@ class Server {
         this.usersPath = '/api/users'
         this.authPath = '/api/auth'
         this.projectPath = '/api/project'
+        this.taskPath = '/api/task'
 
         //Conectar db mongo
         this.conectarDb();
@@ -41,6 +42,7 @@ class Server {
         this.app.use(this.usersPath, require('../routes/user'));
         this.app.use(this.authPath, require('../routes/auth'));
         this.app.use(this.projectPath, require('../routes/project'));
+        this.app.use(this.taskPath, require('../routes/task'));
 
     }
 

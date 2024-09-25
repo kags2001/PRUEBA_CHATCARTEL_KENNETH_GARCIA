@@ -1,5 +1,5 @@
 const bcrypt = require('bcryptjs');
-const {User, Project, UserProject} = require('../models');
+const {User, Project, UserProject, Task} = require('../models');
 const Role = require("../models/role");
 const jwt = require('jsonwebtoken');
 const {sequelize} = require("../config");
@@ -36,6 +36,25 @@ const findUserById = async (id, res) => {
             return null;
         }
         return user;
+    } catch (error) {
+        res.status(500).json({
+            msg: "Error interno del servidor",
+            error: error.message,
+        });
+        return null;
+    }
+};
+
+const findTaskById = async (id, res) => {
+    try {
+        const task = await Task.findByPk(id);
+        if (!task) {
+            res.status(404).json({
+                msg: "Tarea no existe"
+            });
+            return null;
+        }
+        return task;
     } catch (error) {
         res.status(500).json({
             msg: "Error interno del servidor",
@@ -156,5 +175,6 @@ module.exports = {
     findUserProjectAssignment,
     filterProjects,
     findUserWithPendingTask,
-    logActivity
+    logActivity,
+    findTaskById,
 };

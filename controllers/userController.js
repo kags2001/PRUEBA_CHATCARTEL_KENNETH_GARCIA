@@ -26,11 +26,6 @@ const {User} = require('../models');
         if (!user) return;
         const usuarioAuth = req.usuario;
 
-        if (usuarioAuth.id !== user.id){
-            res.status(401).json({
-                msg:'No es el mismo usuario'
-            });
-        } else {
             await User.destroy({
                 where: {
                     id: id,
@@ -41,18 +36,18 @@ const {User} = require('../models');
             res.json({
                 msg:'Usuario eliminado correctamente'
             });
-        }
+
     }
 
     const userUpdate = async (req, res) => {
         const {id} = req.params;
-        const {username, email, role_name} = req.body;
+        const {username, role_name} = req.body;
         const user = await findUserById(id, res);
         if (!user) return;
         const usuarioAuth = req.usuario;
 
        await User.update(
-            { username:username, email: email, role_name: role_name  },
+            { username:username, role_name: role_name  },
             {
                 where: {
                     id: id,

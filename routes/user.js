@@ -17,9 +17,6 @@ router.get("/:id", [
 router.put("/:id", [
     validateJWT,
     isSameOrAdminRole,
-    check('email', 'El correo es requerido').not().isEmpty(),
-    check('email', 'El correo no es válido').isEmail(),
-    check('email').custom(validateEmail),
     check('role_name').custom(validateRole),
     validateFields
 ], userUpdate);
