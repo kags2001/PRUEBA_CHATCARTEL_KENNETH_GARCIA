@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const { sequelize } = require('../config');
+const {dbConnection} = require("../mondodb/mongoDbConfig");
 
 
 
@@ -12,11 +13,17 @@ class Server {
         this.authPath = '/api/auth'
         this.projectPath = '/api/project'
 
+        //Conectar db mongo
+        this.conectarDb();
+
         //Middlewares
         this.middlewares();
 
         //Rutas app
         this.routes();
+    }
+    async conectarDb(){
+        await dbConnection();
     }
 
     middlewares(){
@@ -41,7 +48,7 @@ class Server {
         try {
             require('../models');
             await sequelize.sync();
-            console.log('Base de datos sincronizada correctamente');
+            console.log('Base de datos (MYSQL) sincronizada correctamente');
 
             this.app.listen(this.port, () => {
                 console.log('Servidor corriendo en el puerto', this.port);

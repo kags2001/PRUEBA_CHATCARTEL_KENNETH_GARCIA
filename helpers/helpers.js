@@ -3,24 +3,24 @@ const {User, Project, UserProject} = require('../models');
 const Role = require("../models/role");
 const jwt = require('jsonwebtoken');
 const {sequelize} = require("../config");
+const Log = require('../models/log');
 
 
-
-function passwordBcrypt (password){
+function passwordBcrypt(password) {
     const salt = bcrypt.genSaltSync();
     return bcrypt.hashSync(password, salt);
 }
 
-async function validateEmail (email) {
-        const isValidEmail = await User.findOne({ where: { email: email } });
-        if (isValidEmail) {
-            throw new Error(`EL correo ya esta registrado`);
-        }
+async function validateEmail(email) {
+    const isValidEmail = await User.findOne({where: {email: email}});
+    if (isValidEmail) {
+        throw new Error(`EL correo ya esta registrado`);
+    }
 }
 
-async function validateRole (role_name = '') {
-    const roleExists = await Role.findOne({ where: { role_name: role_name } });
-    if (!roleExists){
+async function validateRole(role_name = '') {
+    const roleExists = await Role.findOne({where: {role_name: role_name}});
+    if (!roleExists) {
         throw new Error(`El role ${role_name} no existe`);
     }
 }
@@ -82,33 +82,30 @@ const findUserProjectAssignment = async (userId, projectId) => {
     }
 };
 
-function generateJWT( id ){
+function generateJWT(id) {
     return new Promise((resolve, reject) => {
-        const payload = { id };
-        jwt.sign( payload,process.env.SECRETORPRIVATEKEY, {expiresIn: '4h'}, (err, token) => {
-           if (err){
-               console.log(err)
-               reject('No se pudo generar el token');
-           }
-           else {
-               resolve(token);
-           }
+        const payload = {id};
+        jwt.sign(payload, process.env.SECRETORPRIVATEKEY, {expiresIn: '4h'}, (err, token) => {
+            if (err) {
+                console.log(err)
+                reject('No se pudo generar el token');
+            } else {
+                resolve(token);
+            }
         });
     });
 }
 
-const filterProjets = async (projects) => {
+const filterProjects = async (projects) => {
     try {
-        const Proyectos = projects.map(project => {
-            const projectData = project.get({ plain: true });
+        return projects.map(project => {
+            const projectData = project.get({plain: true});
             return {
                 id: projectData.id,
                 project_name: projectData.project_name,
                 project_description: projectData.project_description,
             };
         });
-
-        return Proyectos;
     } catch (error) {
         console.error(error);
         return null;
@@ -117,33 +114,36 @@ const filterProjets = async (projects) => {
 
 const findUserWithPendingTask = async (projectId) => {
     const [result] = await sequelize.query(`
-      SELECT 
-        u.id AS user_id, 
-        u.username, 
-        COUNT(t.id) AS pending_tasks
-      FROM 
-        users u
-      JOIN 
-        user_projects up ON u.id = up.user_id
-      JOIN 
-        tasks t ON t.project_id = up.project_id
-      JOIN 
-        user_tasks ut ON t.id = ut.task_id AND ut.user_id = u.id
-      WHERE 
-        up.project_id = :projectId
-        AND t.task_status_id = 2
-      GROUP BY 
-        u.id, u.username
-      ORDER BY 
-        pending_tasks ASC
-      LIMIT 1;
+        SELECT u.id        AS user_id,
+               u.username,
+               COUNT(t.id) AS pending_tasks
+        FROM users u
+                 JOIN
+             user_projects up ON u.id = up.user_id
+                 JOIN
+             tasks t ON t.project_id = up.project_id
+                 JOIN
+             user_tasks ut ON t.id = ut.task_id AND ut.user_id = u.id
+        WHERE up.project_id = :projectId
+          AND t.task_status_id = 2
+        GROUP BY u.id, u.username
+        ORDER BY pending_tasks ASC LIMIT 1;
     `, {
-        replacements: { projectId },
+        replacements: {projectId},
         type: sequelize.QueryTypes.SELECT
     });
     return result;
 };
 
+async function logActivity(userId, action, resource) {
+    try {
+        const logEntry = new Log({userId, action, resource});
+        await logEntry.save();
+    } catch (error) {
+        console.error('Error logging activity:', error.message);
+        return error;
+    }
+}
 
 
 module.exports = {
@@ -154,6 +154,7 @@ module.exports = {
     generateJWT,
     findProjectById,
     findUserProjectAssignment,
-    filterProjets,
-    findUserWithPendingTask
+    filterProjects,
+    findUserWithPendingTask,
+    logActivity
 };

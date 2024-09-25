@@ -9,6 +9,6 @@ router.post("/login", [
     check('email', 'El correo es obligatorio').isEmail(),
     check('password', 'El password es obligatorio').not().isEmpty(),
     validateFields
-] ,login);
+], login);
 
 module.exports = router;

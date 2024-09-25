@@ -9,7 +9,7 @@ const {isSameOrAdminRole, isAdminRole} = require("../middlewares/validate-roles"
 
 const router = Router();
 
-router.get("/:id",[
+router.get("/:id", [
     validateJWT,
     isSameOrAdminRole
 ], userGet);
@@ -22,14 +22,14 @@ router.put("/:id", [
     check('email').custom(validateEmail),
     check('role_name').custom(validateRole),
     validateFields
-],userUpdate);
+], userUpdate);
 
 router.delete("/:id", [
     validateJWT,
     isAdminRole
-] ,userDelete);
+], userDelete);
 
-router.post("/",[
+router.post("/", [
     check('email', 'El correo no es válido').isEmail(),
     check('email').custom(validateEmail),
     check('username', 'El nombre es obligatorio').not().isEmpty(),
@@ -37,6 +37,6 @@ router.post("/",[
     check('role_name').not().isEmpty(),
     check('role_name').custom(validateRole),
     validateFields
-] ,userCreate);
+], userCreate);
 
 module.exports = router;

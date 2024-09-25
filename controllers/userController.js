@@ -1,5 +1,5 @@
 const {User} = require('../models');
-    const {passwordBcrypt, findUserById} = require("../helpers/helpers");
+    const {passwordBcrypt, findUserById, logActivity} = require("../helpers/helpers");
 
 
     const userGet = async (req, res) => {
@@ -7,7 +7,9 @@ const {User} = require('../models');
          const {id} = req.params;
          const user = await findUserById(id, res);
          if (!user) return;
+         const usuarioAuth = req.usuario;
 
+         await logActivity(usuarioAuth.id, "find", "user");
          res.json({
              user
          })
@@ -34,6 +36,8 @@ const {User} = require('../models');
                     id: id,
                 },
             });
+
+            await logActivity(usuarioAuth.id, "delete", "user");
             res.json({
                 msg:'Usuario eliminado correctamente'
             });
@@ -45,6 +49,7 @@ const {User} = require('../models');
         const {username, email, role_name} = req.body;
         const user = await findUserById(id, res);
         if (!user) return;
+        const usuarioAuth = req.usuario;
 
        await User.update(
             { username:username, email: email, role_name: role_name  },
@@ -54,8 +59,8 @@ const {User} = require('../models');
                 },
             },
         );
-
-       res.json({
+        await logActivity(usuarioAuth.id, "update", "user");
+        res.json({
            msg:"Usuario actualizado satisfactoriamente",
        })
     }
@@ -70,6 +75,7 @@ const {User} = require('../models');
         user.email = email;
 
         await user.save();
+        await logActivity(user.id, "create", "user");
         res.json({
             msj:"Usuario creado satisfactoriamente"
         })
